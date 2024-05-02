@@ -19,6 +19,57 @@
    
 3. Результат вывести в stdout (например `print`).
 
+Решение: 
+
+```python
+import requests
+from collections import defaultdict
+
+def get_data(url):
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        print(f"Ошибка при получении данных, код {response.status_code}")
+        return
+
+def calculate_avg_comments(comments_data, posts_data):
+    post_comments = defaultdict(list)
+    for comment in comments_data:
+        post_comments[comment['postId']].append(comment)
+
+    # Считаем общее количество комментариев и количество постов для каждого пользователя
+    user_avg_comments = {}
+    for post in posts_data:
+        user_id = post['userId']
+        num_comments = len(post_comments[post['id']])
+        if user_id not in user_avg_comments:
+            user_avg_comments[user_id] = [num_comments, 1]
+        else:
+            user_avg_comments[user_id][0] += num_comments
+            user_avg_comments[user_id][1] += 1
+
+    # Вычисляем среднее количество комментариев на пост для каждого пользователя
+    for user_id, (total_comments, num_posts) in user_avg_comments.items():
+        user_avg_comments[user_id] = total_comments / num_posts
+
+    return user_avg_comments
+
+def main():
+    comments_url = 'http://jsonplaceholder.typicode.com/comments'
+    posts_url = 'http://jsonplaceholder.typicode.com/posts'
+    # Получаем данные
+    comments_data = get_data(comments_url)
+    posts_data = get_data(posts_url)
+    # Считаем метрику
+    if comments_data and posts_data:
+        print(calculate_avg_comments(comments_data, posts_data))
+
+
+if __name__ == "__main__":
+    main()
+```
+
 
 ### 2 (качество кода, Dependency Injection, Dependency Inversion)
 
